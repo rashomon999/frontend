@@ -5,8 +5,10 @@ import {
   ExerciseResponse,
   createExercise,
 } from "../../services/exerciseService";
+
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
+
 import {
   Container,
   Typography,
@@ -19,13 +21,26 @@ import {
   DialogContent,
   TextField,
   DialogActions,
-  Grid,
+  MenuItem,
 } from "@mui/material";
+
+import Grid from "@mui/material/Grid";
+
 import AddIcon from "@mui/icons-material/Add";
+
 import Navbar from "../../components/Navbar";
 import ExerciseCard from "../../components/ExerciseCard";
 
-const EMPTY_FORM = {
+interface ExerciseFormData {
+  name: string;
+  type: string;
+  description: string;
+  durationMin: number;
+  difficulty: string;
+  videoUrl: string;
+}
+
+const EMPTY_FORM: ExerciseFormData = {
   name: "",
   type: "",
   description: "",
@@ -36,19 +51,25 @@ const EMPTY_FORM = {
 
 function ExercisesPage() {
   const [exercises, setExercises] = useState<ExerciseResponse[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState(EMPTY_FORM);
+  const [open, setOpen] = useState<boolean>(false);
+  const [formData, setFormData] =
+    useState<ExerciseFormData>(EMPTY_FORM);
 
-  const { user } = useSelector((state: RootState) => state.auth);
+  const { user } = useSelector(
+    (state: RootState) => state.auth
+  );
 
   const loadExercises = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
+
       const data = await getExercises();
       setExercises(data);
-    } catch {
+    } catch (err) {
+      console.error(err);
       setError("Error al cargar los ejercicios.");
     } finally {
       setLoading(false);
@@ -60,74 +81,142 @@ function ExercisesPage() {
   }, [loadExercises]);
 
   const handleDelete = async (id: number) => {
-    if (window.confirm("¿Está seguro de eliminar este ejercicio?")) {
-      try {
-        await deleteExercise(id);
-        setExercises((prev) => prev.filter((e) => e.id !== id));
-      } catch {
-        alert("Error al eliminar.");
-      }
+    const confirmDelete = window.confirm(
+      "¿Está seguro de eliminar este ejercicio?"
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      await deleteExercise(id);
+
+      setExercises((prev) =>
+        prev.filter((exercise) => exercise.id !== id)
+      );
+    } catch (err) {
+      console.error(err);
+      alert("Error al eliminar el ejercicio.");
     }
   };
 
   const handleCreate = async () => {
     if (!user) return;
+
     try {
-      await createExercise({ ...formData, userId: user.id });
+      await createExercise({
+        ...formData,
+        userId: user.id,
+      });
+
       setOpen(false);
       setFormData(EMPTY_FORM);
-      loadExercises();
-    } catch {
-      alert("Error al crear ejercicio.");
+
+      await loadExercises();
+    } catch (err) {
+      console.error(err);
+      alert("Error al crear el ejercicio.");
     }
+  };
+
+  const handleInputChange = (
+    field: keyof ExerciseFormData,
+    value: string | number
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   return (
     <>
       <Navbar />
+
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
         <Box
-          sx={{ display: "flex", justifyContent: "space-between", mb: 4, alignItems: "center" }}
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 4,
+            gap: 2,
+            flexWrap: "wrap",
+          }}
         >
           <Box>
-            <Typography variant="h4" fontWeight="bold">Biblioteca de Ejercicios</Typography>
-            <Typography variant="body1" color="text.secondary">
+            <Typography
+              variant="h4"
+              sx={{ fontWeight: "bold" }}
+            >
+              Biblioteca de Ejercicios
+            </Typography>
+
+            <Typography
+              variant="body1"
+              color="text.secondary"
+            >
               Encuentra la mejor rutina para tu objetivo
             </Typography>
           </Box>
-          {(user?.role === "ADMIN" || user?.role === "TRAINER") && (
+
+          {(user?.role === "ADMIN" ||
+            user?.role === "TRAINER") && (
             <Button
               variant="contained"
               startIcon={<AddIcon />}
               onClick={() => setOpen(true)}
-              sx={{ height: "fit-content" }}
             >
               Nuevo Ejercicio
             </Button>
           )}
         </Box>
 
-        {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
 
         {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 10 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              mt: 10,
+            }}
+          >
             <CircularProgress size={60} />
           </Box>
         ) : (
           <Grid container spacing={3}>
-            {exercises.map((ex) => (
-              <Grid item xs={12} sm={6} md={4} key={ex.id}>
-                <ExerciseCard
-                  exercise={ex}
-                  onDelete={handleDelete}
-                  showDelete={user?.role === "ADMIN" || user?.role === "TRAINER"}
-                />
-              </Grid>
-            ))}
-            {exercises.length === 0 && (
-              <Grid item xs={12}>
-                <Box sx={{ textAlign: "center", py: 10 }}>
-                  <Typography variant="h6" color="text.secondary">
+            {exercises.length > 0 ? (
+              exercises.map((exercise) => (
+                <Grid
+                  size={{ xs: 12, sm: 6, md: 4 }}
+                  key={exercise.id}
+                >
+                  <ExerciseCard
+                    exercise={exercise}
+                    onDelete={handleDelete}
+                    showDelete={
+                      user?.role === "ADMIN" ||
+                      user?.role === "TRAINER"
+                    }
+                  />
+                </Grid>
+              ))
+            ) : (
+              <Grid size={12}>
+                <Box
+                  sx={{
+                    textAlign: "center",
+                    py: 10,
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    color="text.secondary"
+                  >
                     No hay ejercicios registrados todavía.
                   </Typography>
                 </Box>
@@ -136,68 +225,135 @@ function ExercisesPage() {
           </Grid>
         )}
 
-        <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
-          <DialogTitle sx={{ fontWeight: "bold" }}>Agregar Nuevo Ejercicio</DialogTitle>
+        <Dialog
+          open={open}
+          onClose={() => setOpen(false)}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle sx={{ fontWeight: "bold" }}>
+            Agregar Nuevo Ejercicio
+          </DialogTitle>
+
           <DialogContent dividers>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
+            <Grid container spacing={2} sx={{ mt: 0.5 }}>
+              <Grid size={12}>
                 <TextField
-                  fullWidth label="Nombre" margin="dense" variant="outlined"
+                  fullWidth
+                  label="Nombre"
+                  variant="outlined"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth label="Tipo (ej. Fuerza, Cardio)" margin="dense"
-                  value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth label="Dificultad" margin="dense" select
-                  SelectProps={{ native: true }}
-                  value={formData.difficulty}
-                  onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
-                >
-                  <option value="Baja">Baja</option>
-                  <option value="Media">Media</option>
-                  <option value="Alta">Alta</option>
-                </TextField>
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth label="Duración Estimada (min)" margin="dense" type="number"
-                  value={formData.durationMin}
                   onChange={(e) =>
-                    setFormData({ ...formData, durationMin: parseInt(e.target.value) })
+                    handleInputChange(
+                      "name",
+                      e.target.value
+                    )
                   }
                 />
               </Grid>
-              <Grid item xs={12}>
+
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
-                  fullWidth label="Descripción / Instrucciones" margin="dense" multiline rows={3}
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  fullWidth
+                  label="Tipo"
+                  placeholder="Fuerza, Cardio..."
+                  value={formData.type}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "type",
+                      e.target.value
+                    )
+                  }
                 />
               </Grid>
-              <Grid item xs={12}>
+
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
-                  fullWidth label="URL del Video Demostrativo" margin="dense"
+                  fullWidth
+                  select
+                  label="Dificultad"
+                  value={formData.difficulty}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "difficulty",
+                      e.target.value
+                    )
+                  }
+                >
+                  <MenuItem value="Baja">
+                    Baja
+                  </MenuItem>
+
+                  <MenuItem value="Media">
+                    Media
+                  </MenuItem>
+
+                  <MenuItem value="Alta">
+                    Alta
+                  </MenuItem>
+                </TextField>
+              </Grid>
+
+              <Grid size={12}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Duración Estimada (min)"
+                  value={formData.durationMin}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "durationMin",
+                      Number(e.target.value)
+                    )
+                  }
+                />
+              </Grid>
+
+              <Grid size={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={4}
+                  label="Descripción / Instrucciones"
+                  value={formData.description}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "description",
+                      e.target.value
+                    )
+                  }
+                />
+              </Grid>
+
+              <Grid size={12}>
+                <TextField
+                  fullWidth
+                  label="URL del Video"
                   placeholder="https://youtube.com/..."
                   value={formData.videoUrl}
-                  onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "videoUrl",
+                      e.target.value
+                    )
+                  }
                 />
               </Grid>
             </Grid>
           </DialogContent>
+
           <DialogActions sx={{ p: 2 }}>
-            <Button onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
+
             <Button
               variant="contained"
               onClick={handleCreate}
-              disabled={!formData.name || !formData.type}
+              disabled={
+                !formData.name.trim() ||
+                !formData.type.trim()
+              }
             >
               Guardar Ejercicio
             </Button>
