@@ -47,8 +47,7 @@
 ---
 # Matriz de funcionalidades por rol
 
-# Matriz de funcionalidades por rol
-
+ 
 | Entidad | ADMIN | TRAINER | USER |
 |---|---|---|---|
 | Auth | Login | Login | Login |
