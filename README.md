@@ -1,50 +1,56 @@
-# Division:
+# División por rol de usuario
 
-# División equilibrada — 3 personas
+## Persona 1 — Vistas de Usuario (estudiante)
 
-## Persona 1 (tú) — Base + Autenticación + WebSockets
+- `LoginPage`
+- `DashboardPage`
+  - Bienvenida
+  - Gráficos de progreso
+- `ProgressPage`
+  - Registrar progreso
+  - Ver historial
+- `ProgressForm`
+- `ProgressChart`
+- `ExercisesPage` ✅ ya tienes base
 
+---
+
+## Persona 2 — Vistas de Entrenador
+
+- `CoachingPage` ✅ ya tienes base
+- Ver progreso de estudiantes asignados
+- Enviar recomendaciones
+- Subir rutinas prediseñadas
+
+---
+
+## Persona 3 — Vistas de Admin + Base técnica
+
+- `UsersPage`
+  - Gestionar usuarios
+  - Gestionar roles
+- `SpacesPage`
+  - Espacios y eventos
+- `RoutinesPage` ✅ ya tienes base
 - `axios.ts`
 - `authSlice`
 - `store`
 - `ProtectedRoute`
 - `AppRouter` ✅
 - `notificationService.ts`
-- Conectar WebSockets en `App.tsx`
 - `NotificationToast`
-- `LoginPage`
-- `CoachingPage` ✅ ya tienes base
-
----
-
-## Persona 2 — Páginas de usuario
-
-- `DashboardPage`
-  - Bienvenida
-  - Gráficos de progreso con Recharts
-- `ProgressPage`
-  - Registrar progreso
-  - Ver historial
-- `ProgressForm`
-- `ProgressChart`
-- `ExercisesPage` ✅ ya tienes base, ajustes finales
-
----
-
-## Persona 3 — Páginas de admin/entrenador + calidad
-
-- `UsersPage`
-  - Listar usuarios
-  - Gestionar roles
-  - Asignar entrenadores
-- `SpacesPage`
-  - Crear espacios
-  - Listar eventos
-- `RoutinesPage` ✅ ya tienes base, ajustes finales
 - Configuración de:
   - ESLint
   - Husky
   - README
+
+---
+
+# Compartido entre los 3
+
+- Commits en GitHub obligatorio
+- Sustentación presencial — todos deben entender todo
+- Video de demostración
 
 # React + Vite
 
