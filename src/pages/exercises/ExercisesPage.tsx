@@ -2,8 +2,9 @@ import { useEffect, useState, useCallback } from "react";
 import {
   getExercises,
   deleteExercise,
-  ExerciseResponse,
   createExercise,
+  updateExercise,
+  ExerciseResponse,
 } from "../../services/exerciseService";
 
 import { useSelector } from "react-redux";
@@ -25,7 +26,6 @@ import {
 } from "@mui/material";
 
 import Grid from "@mui/material/Grid";
-
 import AddIcon from "@mui/icons-material/Add";
 
 import Navbar from "../../components/Navbar";
@@ -54,18 +54,15 @@ function ExercisesPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState<boolean>(false);
-  const [formData, setFormData] =
-    useState<ExerciseFormData>(EMPTY_FORM);
+  const [formData, setFormData] = useState<ExerciseFormData>(EMPTY_FORM);
+  const [editingId, setEditingId] = useState<number | null>(null);
 
-  const { user } = useSelector(
-    (state: RootState) => state.auth
-  );
+  const { user } = useSelector((state: RootState) => state.auth);
 
   const loadExercises = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-
       const data = await getExercises();
       setExercises(data);
     } catch (err) {
@@ -80,58 +77,67 @@ function ExercisesPage() {
     loadExercises();
   }, [loadExercises]);
 
+  const handleOpenCreate = () => {
+    setEditingId(null);
+    setFormData(EMPTY_FORM);
+    setOpen(true);
+  };
+
+  const handleOpenEdit = (exercise: ExerciseResponse) => {
+    setEditingId(exercise.id);
+    setFormData({
+      name: exercise.name,
+      type: exercise.type,
+      description: exercise.description,
+      durationMin: exercise.durationMin,
+      difficulty: exercise.difficulty,
+      videoUrl: exercise.videoUrl,
+    });
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setEditingId(null);
+    setFormData(EMPTY_FORM);
+  };
+
+  const handleSave = async () => {
+    if (!user) return;
+    try {
+      if (editingId !== null) {
+        await updateExercise(editingId, { ...formData, userId: user.id });
+      } else {
+        await createExercise({ ...formData, userId: user.id });
+      }
+      handleClose();
+      await loadExercises();
+    } catch (err) {
+      console.error(err);
+      alert(editingId ? "Error al editar el ejercicio." : "Error al crear el ejercicio.");
+    }
+  };
+
   const handleDelete = async (id: number) => {
-    const confirmDelete = window.confirm(
-      "¿Está seguro de eliminar este ejercicio?"
-    );
-
-    if (!confirmDelete) return;
-
+    if (!window.confirm("¿Está seguro de eliminar este ejercicio?")) return;
     try {
       await deleteExercise(id);
-
-      setExercises((prev) =>
-        prev.filter((exercise) => exercise.id !== id)
-      );
+      setExercises((prev) => prev.filter((e) => e.id !== id));
     } catch (err) {
       console.error(err);
       alert("Error al eliminar el ejercicio.");
     }
   };
 
-  const handleCreate = async () => {
-    if (!user) return;
-
-    try {
-      await createExercise({
-        ...formData,
-        userId: user.id,
-      });
-
-      setOpen(false);
-      setFormData(EMPTY_FORM);
-
-      await loadExercises();
-    } catch (err) {
-      console.error(err);
-      alert("Error al crear el ejercicio.");
-    }
+  const handleInputChange = (field: keyof ExerciseFormData, value: string | number) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleInputChange = (
-    field: keyof ExerciseFormData,
-    value: string | number
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
+  const canManage = user?.role === "ADMIN" || user?.role === "TRAINER";
 
   return (
     <>
       <Navbar />
-
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
         <Box
           sx={{
@@ -144,27 +150,19 @@ function ExercisesPage() {
           }}
         >
           <Box>
-            <Typography
-              variant="h4"
-              sx={{ fontWeight: "bold" }}
-            >
+            <Typography variant="h4" sx={{ fontWeight: "bold" }}>
               Biblioteca de Ejercicios
             </Typography>
-
-            <Typography
-              variant="body1"
-              color="text.secondary"
-            >
+            <Typography variant="body1" color="text.secondary">
               Encuentra la mejor rutina para tu objetivo
             </Typography>
           </Box>
 
-          {(user?.role === "ADMIN" ||
-            user?.role === "TRAINER") && (
+          {canManage && (
             <Button
               variant="contained"
               startIcon={<AddIcon />}
-              onClick={() => setOpen(true)}
+              onClick={handleOpenCreate}
             >
               Nuevo Ejercicio
             </Button>
@@ -178,45 +176,26 @@ function ExercisesPage() {
         )}
 
         {loading ? (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              mt: 10,
-            }}
-          >
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 10 }}>
             <CircularProgress size={60} />
           </Box>
         ) : (
           <Grid container spacing={3}>
             {exercises.length > 0 ? (
               exercises.map((exercise) => (
-                <Grid
-                  size={{ xs: 12, sm: 6, md: 4 }}
-                  key={exercise.id}
-                >
+                <Grid size={{ xs: 12, sm: 6, md: 4 }} key={exercise.id}>
                   <ExerciseCard
                     exercise={exercise}
                     onDelete={handleDelete}
-                    showDelete={
-                      user?.role === "ADMIN" ||
-                      user?.role === "TRAINER"
-                    }
+                    onEdit={canManage ? handleOpenEdit : undefined}
+                    showDelete={canManage}
                   />
                 </Grid>
               ))
             ) : (
               <Grid size={12}>
-                <Box
-                  sx={{
-                    textAlign: "center",
-                    py: 10,
-                  }}
-                >
-                  <Typography
-                    variant="h6"
-                    color="text.secondary"
-                  >
+                <Box sx={{ textAlign: "center", py: 10 }}>
+                  <Typography variant="h6" color="text.secondary">
                     No hay ejercicios registrados todavía.
                   </Typography>
                 </Box>
@@ -225,14 +204,9 @@ function ExercisesPage() {
           </Grid>
         )}
 
-        <Dialog
-          open={open}
-          onClose={() => setOpen(false)}
-          maxWidth="sm"
-          fullWidth
-        >
+        <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
           <DialogTitle sx={{ fontWeight: "bold" }}>
-            Agregar Nuevo Ejercicio
+            {editingId !== null ? "Editar Ejercicio" : "Agregar Nuevo Ejercicio"}
           </DialogTitle>
 
           <DialogContent dividers>
@@ -243,12 +217,7 @@ function ExercisesPage() {
                   label="Nombre"
                   variant="outlined"
                   value={formData.name}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "name",
-                      e.target.value
-                    )
-                  }
+                  onChange={(e) => handleInputChange("name", e.target.value)}
                 />
               </Grid>
 
@@ -258,12 +227,7 @@ function ExercisesPage() {
                   label="Tipo"
                   placeholder="Fuerza, Cardio..."
                   value={formData.type}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "type",
-                      e.target.value
-                    )
-                  }
+                  onChange={(e) => handleInputChange("type", e.target.value)}
                 />
               </Grid>
 
@@ -273,24 +237,11 @@ function ExercisesPage() {
                   select
                   label="Dificultad"
                   value={formData.difficulty}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "difficulty",
-                      e.target.value
-                    )
-                  }
+                  onChange={(e) => handleInputChange("difficulty", e.target.value)}
                 >
-                  <MenuItem value="Baja">
-                    Baja
-                  </MenuItem>
-
-                  <MenuItem value="Media">
-                    Media
-                  </MenuItem>
-
-                  <MenuItem value="Alta">
-                    Alta
-                  </MenuItem>
+                  <MenuItem value="Baja">Baja</MenuItem>
+                  <MenuItem value="Media">Media</MenuItem>
+                  <MenuItem value="Alta">Alta</MenuItem>
                 </TextField>
               </Grid>
 
@@ -300,12 +251,7 @@ function ExercisesPage() {
                   type="number"
                   label="Duración Estimada (min)"
                   value={formData.durationMin}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "durationMin",
-                      Number(e.target.value)
-                    )
-                  }
+                  onChange={(e) => handleInputChange("durationMin", Number(e.target.value))}
                 />
               </Grid>
 
@@ -316,12 +262,7 @@ function ExercisesPage() {
                   rows={4}
                   label="Descripción / Instrucciones"
                   value={formData.description}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "description",
-                      e.target.value
-                    )
-                  }
+                  onChange={(e) => handleInputChange("description", e.target.value)}
                 />
               </Grid>
 
@@ -331,31 +272,20 @@ function ExercisesPage() {
                   label="URL del Video"
                   placeholder="https://youtube.com/..."
                   value={formData.videoUrl}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "videoUrl",
-                      e.target.value
-                    )
-                  }
+                  onChange={(e) => handleInputChange("videoUrl", e.target.value)}
                 />
               </Grid>
             </Grid>
           </DialogContent>
 
           <DialogActions sx={{ p: 2 }}>
-            <Button onClick={() => setOpen(false)}>
-              Cancelar
-            </Button>
-
+            <Button onClick={handleClose}>Cancelar</Button>
             <Button
               variant="contained"
-              onClick={handleCreate}
-              disabled={
-                !formData.name.trim() ||
-                !formData.type.trim()
-              }
+              onClick={handleSave}
+              disabled={!formData.name.trim() || !formData.type.trim()}
             >
-              Guardar Ejercicio
+              {editingId !== null ? "Guardar Cambios" : "Guardar Ejercicio"}
             </Button>
           </DialogActions>
         </Dialog>

@@ -1,88 +1,160 @@
-import { 
-  Card, 
-  CardContent, 
-  CardMedia, 
-  Typography, 
-  CardActions, 
-  Button, 
-  Chip, 
+import {
+  Card,
+  CardContent,
+  Typography,
   Box,
-  IconButton
+  Chip,
+  IconButton,
+  Button,
 } from "@mui/material";
 
-import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircle';
-import TimerIcon from '@mui/icons-material/Timer';
-import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
-import DeleteIcon from '@mui/icons-material/Delete';
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
+
+import { ExerciseResponse } from "../services/exerciseService";
 
 interface ExerciseCardProps {
-  exercise: {
-    id: number;
-    name: string;
-    type: string;
-    description: string;
-    durationMin: number;
-    difficulty: string;
-    videoUrl: string;
-  };
-  onDelete?: (id: number) => void;
+  exercise: ExerciseResponse;
+
+  onDelete?: (id: number) => Promise<void>;
+
+  onEdit?: (exercise: ExerciseResponse) => void;
+
   showDelete?: boolean;
 }
 
-const ExerciseCard = ({ exercise, onDelete, showDelete }: ExerciseCardProps) => {
-  // Generar una imagen aleatoria basada en el tipo para el demo
-  const imageUrl = `https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=400&h=225&sig=${exercise.id}`;
-
+const ExerciseCard = ({
+  exercise,
+  onDelete,
+  onEdit,
+  showDelete,
+}: ExerciseCardProps) => {
   return (
-    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-      <CardMedia
-        component="img"
-        height="180"
-        image={imageUrl}
-        alt={exercise.name}
-      />
-      <Box sx={{ position: 'absolute', top: 10, right: 10 }}>
-        <Chip 
-          label={exercise.difficulty} 
-          size="small" 
-          color={exercise.difficulty === 'Alta' ? 'error' : exercise.difficulty === 'Media' ? 'warning' : 'success'}
-          sx={{ fontWeight: 'bold' }}
-        />
-      </Box>
+    <Card
+      sx={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        borderRadius: 3,
+        boxShadow: 3,
+      }}
+    >
       <CardContent sx={{ flexGrow: 1 }}>
-        <Typography gutterBottom variant="h6" component="h2" noWrap>
-          {exercise.name}
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 1, mb: 1, flexWrap: 'wrap' }}>
-          <Chip label={exercise.type} size="small" variant="outlined" icon={<FitnessCenterIcon fontSize="small" />} />
-          <Chip label={`${exercise.durationMin} min`} size="small" variant="outlined" icon={<TimerIcon fontSize="small" />} />
+        {/* Header */}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            mb: 1,
+            gap: 1,
+          }}
+        >
+          <Typography
+            variant="h6"
+            noWrap
+            sx={{
+              maxWidth: "75%",
+              fontWeight: "bold",
+            }}
+          >
+            {exercise.name}
+          </Typography>
+
+          <Chip
+            label={exercise.difficulty}
+            size="small"
+            color={
+              exercise.difficulty === "Alta"
+                ? "error"
+                : exercise.difficulty === "Media"
+                ? "warning"
+                : "success"
+            }
+          />
         </Box>
-        <Typography variant="body2" color="text.secondary" sx={{
-          display: '-webkit-box',
-          WebkitLineClamp: 3,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden',
-          minHeight: '3em'
-        }}>
-          {exercise.description}
+
+        {/* Tipo */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            color: "text.secondary",
+            mb: 1,
+          }}
+        >
+          <FitnessCenterIcon
+            fontSize="small"
+            sx={{ mr: 1 }}
+          />
+
+          <Typography variant="body2">
+            {exercise.type}
+          </Typography>
+        </Box>
+
+        {/* Duración */}
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ mb: 1 }}
+        >
+          Duración estimada: {exercise.durationMin} min
+        </Typography>
+
+        {/* Descripción */}
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{
+            display: "-webkit-box",
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+          }}
+        >
+          {exercise.description ||
+            "Sin descripción."}
         </Typography>
       </CardContent>
-      <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
-        <Button 
-          size="small" 
-          startIcon={<PlayCircleOutlineIcon />} 
-          href={exercise.videoUrl} 
-          target="_blank"
-          disabled={!exercise.videoUrl}
-        >
-          Ver Video
-        </Button>
+
+      {/* Footer */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "flex-end",
+          alignItems: "center",
+          gap: 1,
+          px: 2,
+          pb: 2,
+        }}
+      >
+        {onEdit && (
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<EditIcon />}
+            onClick={() =>
+              onEdit(exercise)
+            }
+          >
+            Editar
+          </Button>
+        )}
+
         {showDelete && onDelete && (
-          <IconButton color="error" size="small" onClick={() => onDelete(exercise.id)}>
+          <IconButton
+            color="error"
+            size="small"
+            onClick={() =>
+              onDelete(exercise.id)
+            }
+          >
             <DeleteIcon />
           </IconButton>
         )}
-      </CardActions>
+      </Box>
     </Card>
   );
 };

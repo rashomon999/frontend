@@ -31,6 +31,11 @@ export const createExercise = async (data: ExerciseRequest): Promise<ExerciseRes
   return response.data;
 };
 
+export const updateExercise = async (id: number, data: ExerciseRequest): Promise<ExerciseResponse> => {
+  const response = await api.put<ExerciseResponse>(`/rest/exercises/${id}`, data);
+  return response.data;
+};
+
 export const deleteExercise = async (id: number): Promise<void> => {
   await api.delete(`/rest/exercises/${id}`);
 };

@@ -1,42 +1,36 @@
-import { configureStore, combineReducers } from '@reduxjs/toolkit';
-import authReducer from './slices/authSlice';
-import { persistReducer, persistStore } from 'redux-persist';
+import { configureStore } from "@reduxjs/toolkit";
+import { jwtDecode } from "jwt-decode";
+import authReducer from "./slices/authSlice";
 
-// Definición manual de storage para evitar problemas de importación con Vite/ESM
-const storage = {
-  getItem: (key: string) => {
-    return Promise.resolve(localStorage.getItem(key));
-  },
-  setItem: (key: string, value: string) => {
-    localStorage.setItem(key, value);
-    return Promise.resolve();
-  },
-  removeItem: (key: string) => {
-    localStorage.removeItem(key);
-    return Promise.resolve();
-  },
-};
+interface User {
+  id: number;
+  email: string;
+  role: string;
+  authorities: string[];
+}
 
-const rootReducer = combineReducers({
-  auth: authReducer,
-});
+const tokenFromStorage = localStorage.getItem("token");
+let preloadedState = {};
 
-const persistConfig = {
-  key: 'root',
-  storage,
-};
-
-const persistedReducer = persistReducer(persistConfig, rootReducer);
+if (tokenFromStorage) {
+  try {
+    const user = jwtDecode<User>(tokenFromStorage);
+    preloadedState = {
+      auth: { token: tokenFromStorage, user, isAuthenticated: true },
+    };
+  } catch {
+      preloadedState = {
+        auth: { token: null, user: null, isAuthenticated: false },
+      };
+  }
+}
 
 export const store = configureStore({
-  reducer: persistedReducer,
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: false,
-    }),
+  reducer: {
+    auth: authReducer,
+  },
+  preloadedState,
 });
-
-export const persistor = persistStore(store);
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

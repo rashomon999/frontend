@@ -25,6 +25,11 @@ export const createRoutine = async (data: RoutineRequest): Promise<RoutineRespon
   return response.data;
 };
 
+export const updateRoutine = async (id: number, data: RoutineRequest): Promise<RoutineResponse> => {
+  const response = await api.put<RoutineResponse>(`/rest/routines/${id}`, data);
+  return response.data;
+};
+
 export const deleteRoutine = async (id: number): Promise<void> => {
   await api.delete(`/rest/routines/${id}`);
 };

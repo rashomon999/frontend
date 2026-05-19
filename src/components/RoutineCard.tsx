@@ -9,19 +9,18 @@ import {
 } from "@mui/material";
 
 import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import StarIcon from "@mui/icons-material/Star";
 
-interface RoutineCardProps {
-  routine: {
-    id: number;
-    name: string;
-    description: string;
-    userId: number;
-    isPredefined?: boolean;
-  };
+import { RoutineResponse } from "../services/routineService";
 
-  onDelete?: (id: number) => void;
+interface RoutineCardProps {
+  routine: RoutineResponse;
+
+  onDelete?: (id: number) => Promise<void>;
+
+  onEdit?: (routine: RoutineResponse) => void;
 
   canDelete?: boolean;
 
@@ -33,6 +32,7 @@ interface RoutineCardProps {
 const RoutineCard = ({
   routine,
   onDelete,
+  onEdit,
   canDelete,
   onAdopt,
   showAdopt,
@@ -122,19 +122,35 @@ const RoutineCard = ({
           alignItems: "center",
           px: 2,
           pb: 2,
+          gap: 1,
         }}
       >
-        {showAdopt && onAdopt && (
-          <Button
-            size="small"
-            variant="outlined"
-            onClick={() =>
-              onAdopt(routine.id)
-            }
-          >
-            Adoptar Rutina
-          </Button>
-        )}
+        <Box sx={{ display: "flex", gap: 1 }}>
+          {onEdit && (
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<EditIcon />}
+              onClick={() =>
+                onEdit(routine)
+              }
+            >
+              Editar
+            </Button>
+          )}
+
+          {showAdopt && onAdopt && (
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() =>
+                onAdopt(routine.id)
+              }
+            >
+              Adoptar Rutina
+            </Button>
+          )}
+        </Box>
 
         {canDelete && onDelete && (
           <IconButton
