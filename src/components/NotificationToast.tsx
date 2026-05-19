@@ -1,33 +1,45 @@
-import { useEffect, useState } from 'react';
-import { createWebSocketClient } from '../services/notificationService';
-import { Snackbar, Alert } from '@mui/material';
+import { Snackbar, Alert } from "@mui/material";
 
-export const NotificationToast = () => {
-  const [notification, setNotification] = useState<{ message: string } | null>(null);
-  const [open, setOpen] = useState(false);
+import {
+  NotificationType,
+} from "../services/websocketService";
 
-  useEffect(() => {
-    const client = createWebSocketClient((data) => {
-      setNotification(data);
-      setOpen(true);
-    });
+interface Props {
+  open: boolean;
+  message: string;
+  type?: NotificationType;
+  onClose: () => void;
+}
 
-    client.activate();
-
-    return () => {
-      client.deactivate();
-    };
-  }, []);
-
-  const handleClose = () => {
-    setOpen(false);
-  };
-
+function NotificationToast({
+  open,
+  message,
+  type = "info",
+  onClose,
+}: Props) {
   return (
-    <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
-      <Alert onClose={handleClose} severity="info" sx={{ width: '100%' }}>
-        {notification?.message || 'Nueva notificación'}
+    <Snackbar
+      open={open}
+      autoHideDuration={4000}
+      onClose={onClose}
+      anchorOrigin={{
+        vertical: "top",
+        horizontal: "right",
+      }}
+    >
+      <Alert
+        severity={type}
+        variant="filled"
+        onClose={onClose}
+        sx={{
+          width: "100%",
+          minWidth: 320,
+        }}
+      >
+        {message}
       </Alert>
     </Snackbar>
   );
-};
+}
+
+export default NotificationToast;

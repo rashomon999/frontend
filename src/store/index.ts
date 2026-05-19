@@ -1,36 +1,54 @@
-import { configureStore } from "@reduxjs/toolkit";
-import { jwtDecode } from "jwt-decode";
+import {
+  configureStore,
+  combineReducers,
+} from "@reduxjs/toolkit";
+
+import {
+  persistStore,
+  persistReducer,
+} from "redux-persist";
+
+import createWebStorage from "redux-persist/es/storage/createWebStorage";
+
 import authReducer from "./slices/authSlice";
+import notificationReducer from "./slices/notificationSlice";
 
-interface User {
-  id: number;
-  email: string;
-  role: string;
-  authorities: string[];
-}
+const storage =
+  createWebStorage("local");
 
-const tokenFromStorage = localStorage.getItem("token");
-let preloadedState = {};
-
-if (tokenFromStorage) {
-  try {
-    const user = jwtDecode<User>(tokenFromStorage);
-    preloadedState = {
-      auth: { token: tokenFromStorage, user, isAuthenticated: true },
-    };
-  } catch {
-      preloadedState = {
-        auth: { token: null, user: null, isAuthenticated: false },
-      };
-  }
-}
-
-export const store = configureStore({
-  reducer: {
-    auth: authReducer,
-  },
-  preloadedState,
+const rootReducer = combineReducers({
+  auth: authReducer,
+  notifications: notificationReducer,
 });
 
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
+const persistConfig = {
+  key: "root",
+  storage,
+  whitelist: ["auth"],
+};
+
+const persistedReducer =
+  persistReducer(
+    persistConfig,
+    rootReducer
+  );
+
+export const store = configureStore({
+  reducer: persistedReducer,
+
+  middleware: (
+    getDefaultMiddleware
+  ) =>
+    getDefaultMiddleware({
+      serializableCheck: false,
+    }),
+});
+
+export const persistor =
+  persistStore(store);
+
+export type RootState =
+  ReturnType<typeof store.getState>;
+
+export type AppDispatch =
+  typeof store.dispatch;

@@ -2,10 +2,10 @@ import { Navigate } from "react-router-dom";
 import { ReactNode } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
-
+import { Role } from "../../store/slices/authSlice";
 interface ProtectedRouteProps {
   children: ReactNode;
-  allowedRoles?: string[];
+  allowedRoles?: Role[];
 }
 
 function ProtectedRoute({ children, allowedRoles = [] }: ProtectedRouteProps) {

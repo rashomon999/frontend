@@ -29,8 +29,7 @@ function LoginPage() {
     try {
       const data = await apiLogin(institutionalEmail, password);
       dispatch(setCredentials({ token: data.accessToken }));
-      // Also keep token in localStorage for the axios interceptor for simplicity
-      localStorage.setItem("token", data.accessToken);
+
       navigate("/dashboard");
     } catch (error) {
       console.error(error);
