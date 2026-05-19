@@ -13,15 +13,15 @@ export interface CoachingRequest {
 }
 
 export const getCoachingAssignments = async (): Promise<CoachingResponse[]> => {
-  const response = await api.get<CoachingResponse[]>("/rest/coaching");
+  const response = await api.get<CoachingResponse[]>("/rest/coachings"); // was /rest/coaching
   return response.data;
 };
 
 export const createCoachingAssignment = async (data: CoachingRequest): Promise<CoachingResponse> => {
-  const response = await api.post<CoachingResponse>("/rest/coaching", data);
+  const response = await api.post<CoachingResponse>("/rest/coachings", data); // was /rest/coaching
   return response.data;
 };
 
 export const deleteCoachingAssignment = async (trainerId: number, userId: number): Promise<void> => {
-  await api.delete(`/rest/coaching/${trainerId}/${userId}`);
+  await api.delete(`/rest/coachings/${trainerId}/${userId}`); // was /rest/coaching/...
 };

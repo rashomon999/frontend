@@ -12,7 +12,8 @@ export interface UserRequest {
   firstName: string;
   lastName: string;
   institutionalEmail: string;
-  role: string;
+  password: string;
+  roleId: number;
 }
 
 export const getUsers = async (): Promise<UserResponse[]> => {
