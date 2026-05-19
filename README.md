@@ -47,23 +47,25 @@
 ---
 # Matriz de funcionalidades por rol
 
-| Entidad | ADMIN | TRAINER | USER | ¿Página existe? |
-|---|---|---|---|---|
-| Auth | Login | Login | Login | ✅ LoginPage |
-| Users | CRUD completo | — | Ver perfil propio | ✅ UsersPage (confirmar si tiene crear/editar/eliminar) |
-| Roles | CRUD completo | — | — | ❌ Sin página |
-| Permissions | CRUD completo | — | — | ❌ Sin página |
-| Spaces | CRUD completo | Ver | Ver | ✅ SpacesPage (confirmar si admin puede crear/editar) |
-| Activities | CRUD completo | Ver | Ver + Inscribirse | ✅ ActivitiesPage |
-| Schedules | CRUD completo | Ver | Ver | ❌ Sin página (servicio existe) |
-| Enrollments | Ver todos | — | Inscribirse / ver los suyos | ❌ Sin página (servicio existe) |
-| Exercises | CRUD completo | CRUD completo | Ver | ✅ ExercisesPage (confirmar permisos) |
-| Routines | CRUD completo | Crear prediseñadas / ver todas | Crear propias / ver prediseñadas | ✅ RoutinesPage |
-| RoutineExercise | CRUD completo | Agregar ejercicios a rutinas | Ver ejercicios de su rutina | ❌ Sin página/modal (servicio existe) |
-| Progress | Ver todos | Ver de sus asignados | Crear / ver / gráficos | ✅ ProgressPage |
-| Recommendations | Ver todas | Crear / ver las que emite | Ver las que recibe | ✅ RecommendationsPage |
-| Coaching | Gestionar asignaciones trainer ↔ user | Ver sus asignados | — | ✅ CoachingPage (confirmar) |
-| Notifications | Enviar a todos | Enviar a sus asignados | Recibir en tiempo real | ⚠️ NotificationToast + NotificationBell (sin WebSocket activo) |
+# Matriz de funcionalidades por rol
+
+| Entidad | ADMIN | TRAINER | USER |
+|---|---|---|---|
+| Auth | Login | Login | Login |
+| Users | CRUD completo | — | Ver perfil propio |
+| Roles | CRUD completo | — | — |
+| Permissions | CRUD completo | — | — |
+| Spaces | CRUD completo | Ver | Ver |
+| Activities | CRUD completo | Ver | Ver + Inscribirse |
+| Schedules | CRUD completo | Ver | Ver |
+| Enrollments | Ver todos | — | Inscribirse / ver los suyos |
+| Exercises | CRUD completo | CRUD completo | Ver |
+| Routines | CRUD completo | Crear prediseñadas / ver todas | Crear propias / ver prediseñadas |
+| RoutineExercise | CRUD completo | Agregar ejercicios a rutinas | Ver ejercicios de su rutina |
+| Progress | Ver todos | Ver de sus asignados | Crear / ver / gráficos |
+| Recommendations | Ver todas | Crear / ver las que emite | Ver las que recibe |
+| Coaching | Gestionar asignaciones trainer ↔ user | Ver sus asignados | — |
+| Notifications | Enviar a todos | Enviar a sus asignados | Recibir en tiempo real |
 
 ---
 # Compartido entre los 3
